@@ -13,18 +13,27 @@ const Login = () => {
       alert("Please fill in all fields");
       return;
     }
-
+  
     try {
-      const response = await axios.post("http://localhost:5000/login", { username, password }, { headers: { "Content-Type": "application/json" } });
-
+      const response = await axios.post(
+        "http://localhost:5000/login", 
+        { username, password },
+        { headers: { "Content-Type": "application/json" } }
+      );
+  
+      // Store token, username, and role in localStorage
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("username", response.data.username); // Store username
+      localStorage.setItem("role", response.data.role); // Store role
+  
       alert("Login successful!");
+      // Redirect to dashboard
       navigate("/dashboard");
     } catch (error) {
       alert(error.response?.data?.message || "Invalid credentials");
     }
   };
+  
 
   return (
     <Container maxWidth="xs">

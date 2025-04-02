@@ -32,7 +32,7 @@ db.getConnection((err) => {
 //Register
 
 app.post("/register", async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, role } = req.body;
 
   if (!username || !password) {
     return res.status(400).json({ message: "All fields are required" });
@@ -48,8 +48,8 @@ app.post("/register", async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    const insertUserSql = "INSERT INTO users (username, password) VALUES (?,?)";
-    db.query(insertUserSql, [username, hashedPassword], (err, result) => {
+    const insertUserSql = "INSERT INTO users (username, password, role) VALUES (?,?, ?)";
+    db.query(insertUserSql, [username, hashedPassword, role], (err, result) => {
       if (err) return res.status(500).json({ message: "Registration Failed" });
 
       res.status(201).json({ message: "User registered Successfully" });
@@ -57,6 +57,8 @@ app.post("/register", async (req, res) => {
   });
 });
 
+
+// Login User
 // Login User
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
@@ -78,11 +80,28 @@ app.post("/login", (req, res) => {
       return res.status(400).json({ message: "Invalid username or password" });
     }
 
-    const token = jwt.sign({ id: user.id, username: user.username }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign(
+      { id: user.id, username: user.username, role: user.role },  // role is included in the token
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
 
-    res.json({ message: "Login successful", token, username: user.username });
+    // Log to confirm that role is included in the response
+    console.log("Login response:", { token, username: user.username, role: user.role });
+
+    // Send the role along with username and token in the response
+    res.json({
+      message: "Login successful",
+      token,
+      username: user.username,
+      role: user.role, // Ensure this is being sent back
+    });
   });
 });
+
+
+
+
 
 app.listen(5000, () => {
   console.log("Server is running on Port 5000");
